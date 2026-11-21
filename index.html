@@ -386,4 +386,787 @@
     <div class="topbar">
       <div class="brand">
         <span class="brand-title" id="shopNameDisplay">Ma Boutique</span>
-        <span
+        <span class="brand-sub" id="shopSubDisplay">Commande directe WhatsApp • Paiement à la livraison</span>
+      </div>
+      <div class="header-actions">
+        <button id="shareBtn" type="button">Partager</button>
+        <button id="vendorBtn" type="button" title="Espace Vendeur">🔒 Vendeur</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="controls">
+      <input id="searchInput" class="search-input" type="search" placeholder="Rechercher un produit..." />
+      <div class="categories" id="categoryList"></div>
+    </div>
+    <div class="grid" id="productGrid"></div>
+  </main>
+
+  <footer>
+    <span id="footerPhone">WhatsApp : +226 44 39 54 80</span>
+    <button id="footerVendorBtn" type="button">Espace Vendeur</button>
+  </footer>
+
+  <div class="cart-bar">
+    <div class="cart-bar-inner">
+      <div>
+        <strong id="cartCountLabel">0 article</strong>
+        <div style="font-size:0.84rem;color:var(--muted)">Total : <strong id="cartTotalLabel">0 FCFA</strong></div>
+      </div>
+      <button id="openCartBtn" class="btn-wa" type="button">Voir le panier & Commander</button>
+    </div>
+  </div>
+
+  <!-- Modal Détail produit -->
+  <div class="modal-backdrop" id="detailModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="detailTitle">Produit</h3>
+        <button type="button" onclick="closeModal('detailModal')">✕</button>
+      </div>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <!-- Modal Panier -->
+  <div class="modal-backdrop" id="cartModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Votre panier</h3>
+        <button type="button" onclick="closeModal('cartModal')">✕</button>
+      </div>
+      <div id="cartItemsList"></div>
+      <div class="form-group" style="margin-top:12px;">
+        <label for="customerName">Votre nom (optionnel)</label>
+        <input id="customerName" class="field-input" type="text" placeholder="Ex : Aminata" />
+      </div>
+      <div class="form-group">
+        <label for="customerZone">Quartier / Lieu de livraison (optionnel)</label>
+        <input id="customerZone" class="field-input" type="text" placeholder="Ex : Gounghin, Ouagadougou" />
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0;">
+        <strong>Total à payer :</strong>
+        <strong id="modalCartTotal">0 FCFA</strong>
+      </div>
+      <button id="sendWhatsappBtn" class="btn-wa" style="width:100%;padding:12px;" type="button">
+        Commander sur WhatsApp
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal PIN & Espace Vendeur -->
+  <div class="modal-backdrop" id="vendorModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="vendorModalTitle">Espace Vendeur</h3>
+        <button type="button" onclick="closeModal('vendorModal')">✕</button>
+      </div>
+
+      <!-- Création PIN -->
+      <div id="createPinView" style="display:none;">
+        <p style="font-size:0.9rem;color:var(--muted);margin-bottom:12px;">
+          Première connexion : créez votre Code PIN vendeur (4 à 12 caractères) pour protéger la gestion de votre boutique.
+        </p>
+        <div class="form-group">
+          <label for="newPinInput">Nouveau Code PIN</label>
+          <input id="newPinInput" class="field-input" type="password" maxlength="12" placeholder="Ex : 1234" />
+        </div>
+        <div class="form-group">
+          <label for="confirmPinInput">Confirmer le Code PIN</label>
+          <input id="confirmPinInput" class="field-input" type="password" maxlength="12" placeholder="Répétez le code PIN" />
+        </div>
+        <button id="saveNewPinBtn" class="btn-primary" style="width:100%;padding:11px;" type="button">
+          Enregistrer mon Code PIN
+        </button>
+      </div>
+
+      <!-- Connexion PIN -->
+      <div id="loginPinView" style="display:none;">
+        <p style="font-size:0.9rem;color:var(--muted);margin-bottom:12px;">
+          Entrez votre Code PIN vendeur pour gérer les produits et paramètres.
+        </p>
+        <div class="form-group">
+          <label for="loginPinInput">Code PIN</label>
+          <input id="loginPinInput" class="field-input" type="password" maxlength="12" placeholder="Votre code PIN" />
+        </div>
+        <button id="unlockVendorBtn" class="btn-primary" style="width:100%;padding:11px;" type="button">
+          Déverrouiller
+        </button>
+      </div>
+
+      <!-- Tableau de bord vendeur -->
+      <div id="vendorDashboardView" style="display:none;">
+        <div class="tabs">
+          <button id="tabProductsBtn" class="tab-btn active" type="button" onclick="switchVendorTab('products')">Produits</button>
+          <button id="tabSettingsBtn" class="tab-btn" type="button" onclick="switchVendorTab('settings')">Boutique & PIN</button>
+          <button class="btn-danger" type="button" style="margin-left:auto;" onclick="lockVendor()">Verrouiller</button>
+        </div>
+
+        <div id="vendorProductsTab">
+          <form id="productForm">
+            <input type="hidden" id="editProductId" />
+            <div class="form-group">
+              <label for="prodName">Nom du produit *</label>
+              <input id="prodName" class="field-input" type="text" required placeholder="Ex : Pack Découverte" />
+            </div>
+            <div class="form-group">
+              <label for="prodCategory">Catégorie *</label>
+              <input id="prodCategory" class="field-input" type="text" required placeholder="Ex : Nouveautés" />
+            </div>
+            <div class="form-group">
+              <label for="prodPrice">Prix en FCFA *</label>
+              <input id="prodPrice" class="field-input" type="number" min="0" step="1" required placeholder="Ex : 5000" />
+            </div>
+            <div class="form-group">
+              <label for="prodStock">Disponibilité</label>
+              <select id="prodStock" class="field-select">
+                <option value="true">En stock</option>
+                <option value="false">Rupture</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="prodDesc">Description</label>
+              <textarea id="prodDesc" class="field-textarea" rows="2" placeholder="Détails utiles pour le client..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="prodImageFile">Photo depuis l'appareil (compressée automatiquement)</label>
+              <input id="prodImageFile" class="field-input" type="file" accept="image/*" />
+            </div>
+            <div class="form-group">
+              <label for="prodImageUrl">Ou lien direct d'image (URL)</label>
+              <input id="prodImageUrl" class="field-input" type="url" placeholder="https://..." />
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:16px;">
+              <button type="submit" class="btn-primary" style="flex:1;padding:10px;">Enregistrer l'article</button>
+              <button type="button" onclick="resetProductForm()">Réinitialiser</button>
+            </div>
+          </form>
+
+          <h4 style="margin-bottom:8px;">Articles enregistrés</h4>
+          <div id="adminProductList"></div>
+        </div>
+
+        <div id="vendorSettingsTab" style="display:none;">
+          <div class="form-group">
+            <label for="setShopName">Nom de la boutique</label>
+            <input id="setShopName" class="field-input" type="text" />
+          </div>
+          <div class="form-group">
+            <label for="setShopSub">Sous-titre / Accroche</label>
+            <input id="setShopSub" class="field-input" type="text" />
+          </div>
+          <div class="form-group">
+            <label for="setWhatsapp">Numéro WhatsApp (indicatif + numéro, sans + ni espaces)</label>
+            <input id="setWhatsapp" class="field-input" type="tel" placeholder="22644395480" />
+          </div>
+          <button id="saveShopSettingsBtn" class="btn-primary" style="width:100%;padding:10px;margin-bottom:18px;" type="button">
+            Enregistrer les infos boutique
+          </button>
+
+          <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;" />
+          <h4 style="margin-bottom:8px;">Modifier le Code PIN</h4>
+          <div class="form-group">
+            <label for="changePinInput">Nouveau Code PIN (4 à 12 caractères)</label>
+            <input id="changePinInput" class="field-input" type="password" maxlength="12" placeholder="Nouveau PIN" />
+          </div>
+          <button id="updatePinBtn" type="button" style="width:100%;padding:10px;">
+            Mettre à jour le Code PIN
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const STORAGE_KEYS = {
+      products: "boutique_wa_products_v1",
+      settings: "boutique_wa_settings_v1",
+      pinHash: "boutique_wa_pin_hash_v1",
+      cart: "boutique_wa_cart_v1"
+    };
+
+    const DEFAULT_SETTINGS = {
+      shopName: "Ma Boutique",
+      shopSub: "Commande rapide via WhatsApp",
+      whatsapp: "22644395480"
+    };
+
+    const DEFAULT_PRODUCTS = [
+      {
+        id: "prod-1",
+        name: "Article Vedette",
+        category: "Sélection",
+        price: 5000,
+        inStock: true,
+        description: "Produit disponible immédiatement avec commande directe sur WhatsApp.",
+        image: ""
+      }
+    ];
+
+    let state = {
+      products: [],
+      settings: { ...DEFAULT_SETTINGS },
+      cart: [],
+      selectedCategory: "Tous",
+      searchQuery: "",
+      vendorUnlocked: false,
+      draftImage: ""
+    };
+
+    function showToast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => el.classList.remove("show"), 2400);
+    }
+
+    function formatFcfa(amount) {
+      const n = Number(amount) || 0;
+      return n.toLocaleString("fr-FR") + " FCFA";
+    }
+
+    function loadState() {
+      try {
+        const savedSettings = JSON.parse(localStorage.getItem(STORAGE_KEYS.settings) || "null");
+        if (savedSettings && typeof savedSettings === "object") {
+          state.settings = { ...DEFAULT_SETTINGS, ...savedSettings };
+        }
+      } catch (e) {}
+
+      try {
+        const savedProducts = JSON.parse(localStorage.getItem(STORAGE_KEYS.products) || "null");
+        state.products = Array.isArray(savedProducts) && savedProducts.length ? savedProducts : [...DEFAULT_PRODUCTS];
+      } catch (e) {
+        state.products = [...DEFAULT_PRODUCTS];
+      }
+
+      try {
+        const savedCart = JSON.parse(localStorage.getItem(STORAGE_KEYS.cart) || "[]");
+        state.cart = Array.isArray(savedCart) ? savedCart : [];
+      } catch (e) {
+        state.cart = [];
+      }
+    }
+
+    function saveProducts() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(state.products));
+      } catch (e) {
+        showToast("Espace de stockage plein : utilisez une image plus légère ou une URL.");
+      }
+    }
+
+    function saveSettings() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(state.settings));
+      } catch (e) {}
+    }
+
+    function saveCart() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.cart, JSON.stringify(state.cart));
+      } catch (e) {}
+    }
+
+    async function hashPin(pin) {
+      const enc = new TextEncoder().encode(pin);
+      const buf = await crypto.subtle.digest("SHA-256", enc);
+      return Array.from(new Uint8Array(buf))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+    }
+
+    function hasVendorPin() {
+      return Boolean(localStorage.getItem(STORAGE_KEYS.pinHash));
+    }
+
+    function placeholderSvg(label) {
+      const safe = String(label || "Produit").slice(0, 18).replace(/[<>&"]/g, "");
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#e5e7eb"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#4b5563" font-size="22" font-family="sans-serif">${safe}</text></svg>`;
+      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    }
+
+    function renderHeaderAndFooter() {
+      document.title = state.settings.shopName || "Boutique en ligne";
+      document.getElementById("shopNameDisplay").textContent = state.settings.shopName || "Ma Boutique";
+      document.getElementById("shopSubDisplay").textContent = state.settings.shopSub || "";
+      const phoneClean = (state.settings.whatsapp || "").replace(/\D/g, "");
+      document.getElementById("footerPhone").textContent = "WhatsApp : +" + (phoneClean || "22644395480");
+    }
+
+    function renderCategories() {
+      const cats = ["Tous", ...new Set(state.products.map((p) => (p.category || "Général").trim()).filter(Boolean))];
+      const container = document.getElementById("categoryList");
+      container.innerHTML = "";
+      cats.forEach((cat) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "cat-btn" + (state.selectedCategory === cat ? " active" : "");
+        btn.textContent = cat;
+        btn.onclick = () => {
+          state.selectedCategory = cat;
+          renderCategories();
+          renderProducts();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById("productGrid");
+      const q = state.searchQuery.trim().toLowerCase();
+      const filtered = state.products.filter((p) => {
+        const matchCat = state.selectedCategory === "Tous" || (p.category || "Général") === state.selectedCategory;
+        const matchQuery =
+          !q ||
+          (p.name || "").toLowerCase().includes(q) ||
+          (p.description || "").toLowerCase().includes(q) ||
+          (p.category || "").toLowerCase().includes(q);
+        return matchCat && matchQuery;
+      });
+
+      if (!filtered.length) {
+        grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:24px;">Aucun article trouvé.</p>`;
+        return;
+      }
+
+      grid.innerHTML = "";
+      filtered.forEach((p) => {
+        const card = document.createElement("article");
+        card.className = "card";
+        const imgSrc = p.image || placeholderSvg(p.name);
+        card.innerHTML = `
+          <div>
+            <div class="card-img-wrap">
+              <img src="${imgSrc}" alt="${escapeHtml(p.name)}" loading="lazy" />
+              ${p.inStock === false ? `<span class="badge-rupture">Rupture</span>` : ""}
+            </div>
+            <div class="card-body">
+              <span class="card-cat">${escapeHtml(p.category || "Général")}</span>
+              <h3 class="card-title">${escapeHtml(p.name)}</h3>
+              <p class="card-desc">${escapeHtml(p.description || "")}</p>
+              <div class="card-price">${formatFcfa(p.price)}</div>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button type="button" onclick="openProductDetail('${p.id}')">Détails</button>
+            <button type="button" class="btn-primary" ${p.inStock === false ? "disabled" : ""} onclick="addToCart('${p.id}')">
+              ${p.inStock === false ? "Indisponible" : "Ajouter"}
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function openProductDetail(id) {
+      const p = state.products.find((item) => item.id === id);
+      if (!p) return;
+      document.getElementById("detailTitle").textContent = p.name;
+      const imgSrc = p.image || placeholderSvg(p.name);
+      document.getElementById("detailContent").innerHTML = `
+        <div style="width:100%;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#f3f4f6;margin-bottom:12px;">
+          <img src="${imgSrc}" alt="${escapeHtml(p.name)}" style="width:100%;height:100%;object-fit:cover;" />
+        </div>
+        <div style="font-size:0.8rem;color:var(--accent);font-weight:700;margin-bottom:4px;">${escapeHtml(p.category || "Général")}</div>
+        <div style="font-size:1.15rem;font-weight:800;margin-bottom:8px;">${formatFcfa(p.price)} • ${p.inStock === false ? "Rupture de stock" : "En stock"}</div>
+        <p style="font-size:0.92rem;color:var(--muted);margin-bottom:14px;">${escapeHtml(p.description || "Aucune description supplémentaire.")}</p>
+        <button type="button" class="btn-primary" style="width:100%;padding:11px;" ${p.inStock === false ? "disabled" : ""} onclick="addToCart('${p.id}');closeModal('detailModal');">
+          ${p.inStock === false ? "Indisponible" : "Ajouter au panier"}
+        </button>
+      `;
+      openModal("detailModal");
+    }
+
+    function addToCart(id) {
+      const p = state.products.find((item) => item.id === id);
+      if (!p || p.inStock === false) return;
+      const existing = state.cart.find((item) => item.id === id);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        state.cart.push({ id: p.id, name: p.name, price: Number(p.price) || 0, qty: 1 });
+      }
+      saveCart();
+      renderCartBar();
+      showToast("Ajouté au panier");
+    }
+
+    function updateCartQty(id, delta) {
+      const item = state.cart.find((c) => c.id === id);
+      if (!item) return;
+      item.qty += delta;
+      if (item.qty <= 0) {
+        state.cart = state.cart.filter((c) => c.id !== id);
+      }
+      saveCart();
+      renderCartBar();
+      renderCartModal();
+    }
+
+    function getCartTotals() {
+      let count = 0;
+      let total = 0;
+      state.cart.forEach((item) => {
+        count += item.qty;
+        total += (Number(item.price) || 0) * item.qty;
+      });
+      return { count, total };
+    }
+
+    function renderCartBar() {
+      const { count, total } = getCartTotals();
+      document.getElementById("cartCountLabel").textContent = count + (count > 1 ? " articles" : " article");
+      document.getElementById("cartTotalLabel").textContent = formatFcfa(total);
+    }
+
+    function renderCartModal() {
+      const list = document.getElementById("cartItemsList");
+      const { total } = getCartTotals();
+      document.getElementById("modalCartTotal").textContent = formatFcfa(total);
+
+      if (!state.cart.length) {
+        list.innerHTML = `<p style="color:var(--muted);padding:12px 0;">Votre panier est vide.</p>`;
+        return;
+      }
+
+      list.innerHTML = "";
+      state.cart.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "cart-item";
+        row.innerHTML = `
+          <div>
+            <div style="font-weight:700;font-size:0.92rem;">${escapeHtml(item.name)}</div>
+            <div style="font-size:0.82rem;color:var(--muted);">${formatFcfa(item.price)} l'unité</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" onclick="updateCartQty('${item.id}', -1)">-</button>
+            <span style="min-width:20px;text-align:center;font-weight:700;">${item.qty}</span>
+            <button type="button" onclick="updateCartQty('${item.id}', 1)">+</button>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    function sendWhatsappOrder() {
+      if (!state.cart.length) {
+        showToast("Ajoutez au moins un article avant de commander.");
+        return;
+      }
+      const phone = (state.settings.whatsapp || "22644395480").replace(/\D/g, "");
+      const name = document.getElementById("customerName").value.trim();
+      const zone = document.getElementById("customerZone").value.trim();
+      const { total } = getCartTotals();
+
+      const lines = [
+        `Bonjour *${state.settings.shopName}*, je souhaite passer commande :`,
+        ""
+      ];
+      state.cart.forEach((item) => {
+        lines.push(`• ${item.qty} x ${item.name} — ${formatFcfa((Number(item.price) || 0) * item.qty)}`);
+      });
+      lines.push("", `*Total : ${formatFcfa(total)}*`);
+      if (name) lines.push(`Client : ${name}`);
+      if (zone) lines.push(`Livraison : ${zone}`);
+
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("
+"))}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add("open");
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("open");
+    }
+
+    function openVendorSpace() {
+      document.getElementById("createPinView").style.display = "none";
+      document.getElementById("loginPinView").style.display = "none";
+      document.getElementById("vendorDashboardView").style.display = "none";
+
+      if (!hasVendorPin()) {
+        document.getElementById("vendorModalTitle").textContent = "Créer mon Code PIN Vendeur";
+        document.getElementById("createPinView").style.display = "block";
+      } else if (!state.vendorUnlocked) {
+        document.getElementById("vendorModalTitle").textContent = "Connexion Vendeur";
+        document.getElementById("loginPinView").style.display = "block";
+        document.getElementById("loginPinInput").value = "";
+      } else {
+        document.getElementById("vendorModalTitle").textContent = "Gestion Boutique";
+        document.getElementById("vendorDashboardView").style.display = "block";
+        populateVendorForms();
+      }
+      openModal("vendorModal");
+    }
+
+    function lockVendor() {
+      state.vendorUnlocked = false;
+      closeModal("vendorModal");
+      showToast("Espace vendeur verrouillé");
+    }
+
+    function switchVendorTab(tab) {
+      const isProd = tab === "products";
+      document.getElementById("tabProductsBtn").classList.toggle("active", isProd);
+      document.getElementById("tabSettingsBtn").classList.toggle("active", !isProd);
+      document.getElementById("vendorProductsTab").style.display = isProd ? "block" : "none";
+      document.getElementById("vendorSettingsTab").style.display = isProd ? "none" : "block";
+    }
+
+    function populateVendorForms() {
+      document.getElementById("setShopName").value = state.settings.shopName || "";
+      document.getElementById("setShopSub").value = state.settings.shopSub || "";
+      document.getElementById("setWhatsapp").value = state.settings.whatsapp || "";
+      renderAdminProducts();
+    }
+
+    function renderAdminProducts() {
+      const wrap = document.getElementById("adminProductList");
+      wrap.innerHTML = "";
+      state.products.forEach((p) => {
+        const div = document.createElement("div");
+        div.className = "admin-item";
+        div.innerHTML = `
+          <div>
+            <div style="font-weight:700;font-size:0.9rem;">${escapeHtml(p.name)} (${formatFcfa(p.price)})</div>
+            <div style="font-size:0.78rem;color:var(--muted);">${escapeHtml(p.category || "Général")} • ${p.inStock === false ? "Rupture" : "En stock"}</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button type="button" onclick="editProduct('${p.id}')">Modifier</button>
+            <button type="button" class="btn-danger" onclick="deleteProduct('${p.id}')">Suppr.</button>
+          </div>
+        `;
+        wrap.appendChild(div);
+      });
+    }
+
+    function editProduct(id) {
+      const p = state.products.find((item) => item.id === id);
+      if (!p) return;
+      switchVendorTab("products");
+      document.getElementById("editProductId").value = p.id;
+      document.getElementById("prodName").value = p.name || "";
+      document.getElementById("prodCategory").value = p.category || "";
+      document.getElementById("prodPrice").value = p.price || 0;
+      document.getElementById("prodStock").value = String(p.inStock !== false);
+      document.getElementById("prodDesc").value = p.description || "";
+      document.getElementById("prodImageUrl").value = p.image && !p.image.startsWith("data:") ? p.image : "";
+      state.draftImage = p.image || "";
+    }
+
+    function deleteProduct(id) {
+      state.products = state.products.filter((item) => item.id !== id);
+      saveProducts();
+      renderCategories();
+      renderProducts();
+      renderAdminProducts();
+      showToast("Article supprimé");
+    }
+
+    function resetProductForm() {
+      document.getElementById("editProductId").value = "";
+      document.getElementById("productForm").reset();
+      state.draftImage = "";
+    }
+
+    function compressImageFile(file, callback) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxSide = 720;
+          let { width, height } = img;
+          if (width > maxSide || height > maxSide) {
+            if (width > height) {
+              height = Math.round((height * maxSide) / width);
+              width = maxSide;
+            } else {
+              width = Math.round((width * maxSide) / height);
+              height = maxSide;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL("image/jpeg", 0.72));
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    document.getElementById("prodImageFile").addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      compressImageFile(file, (dataUrl) => {
+        state.draftImage = dataUrl;
+        showToast("Photo prête");
+      });
+    });
+
+    document.getElementById("productForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const editId = document.getElementById("editProductId").value;
+      const name = document.getElementById("prodName").value.trim();
+      const category = document.getElementById("prodCategory").value.trim() || "Général";
+      const price = Number(document.getElementById("prodPrice").value) || 0;
+      const inStock = document.getElementById("prodStock").value === "true";
+      const description = document.getElementById("prodDesc").value.trim();
+      const urlVal = document.getElementById("prodImageUrl").value.trim();
+      const finalImage = urlVal || state.draftImage || "";
+
+      if (!name) return;
+
+      if (editId) {
+        const idx = state.products.findIndex((p) => p.id === editId);
+        if (idx !== -1) {
+          state.products[idx] = {
+            ...state.products[idx],
+            name,
+            category,
+            price,
+            inStock,
+            description,
+            image: finalImage
+          };
+        }
+      } else {
+        state.products.unshift({
+          id: "prod-" + Date.now(),
+          name,
+          category,
+          price,
+          inStock,
+          description,
+          image: finalImage
+        });
+      }
+
+      saveProducts();
+      renderCategories();
+      renderProducts();
+      renderAdminProducts();
+      resetProductForm();
+      showToast("Article enregistré");
+    });
+
+    document.getElementById("saveNewPinBtn").addEventListener("click", async () => {
+      const pin1 = document.getElementById("newPinInput").value.trim();
+      const pin2 = document.getElementById("confirmPinInput").value.trim();
+      if (pin1.length < 4 || pin1.length > 12) {
+        showToast("Le Code PIN doit contenir entre 4 et 12 caractères.");
+        return;
+      }
+      if (pin1 !== pin2) {
+        showToast("Les deux Codes PIN ne correspondent pas.");
+        return;
+      }
+      const hashed = await hashPin(pin1);
+      localStorage.setItem(STORAGE_KEYS.pinHash, hashed);
+      state.vendorUnlocked = true;
+      document.getElementById("newPinInput").value = "";
+      document.getElementById("confirmPinInput").value = "";
+      showToast("Code PIN créé !");
+      openVendorSpace();
+    });
+
+    document.getElementById("unlockVendorBtn").addEventListener("click", async () => {
+      const pin = document.getElementById("loginPinInput").value.trim();
+      const stored = localStorage.getItem(STORAGE_KEYS.pinHash);
+      const hashed = await hashPin(pin);
+      if (hashed === stored) {
+        state.vendorUnlocked = true;
+        showToast("Accès autorisé");
+        openVendorSpace();
+      } else {
+        showToast("Code PIN incorrect");
+      }
+    });
+
+    document.getElementById("saveShopSettingsBtn").addEventListener("click", () => {
+      state.settings.shopName = document.getElementById("setShopName").value.trim() || "Ma Boutique";
+      state.settings.shopSub = document.getElementById("setShopSub").value.trim();
+      state.settings.whatsapp = (document.getElementById("setWhatsapp").value || "").replace(/\D/g, "") || "22644395480";
+      saveSettings();
+      renderHeaderAndFooter();
+      showToast("Paramètres enregistrés");
+    });
+
+    document.getElementById("updatePinBtn").addEventListener("click", async () => {
+      const nextPin = document.getElementById("changePinInput").value.trim();
+      if (nextPin.length < 4 || nextPin.length > 12) {
+        showToast("Le Code PIN doit contenir entre 4 et 12 caractères.");
+        return;
+      }
+      const hashed = await hashPin(nextPin);
+      localStorage.setItem(STORAGE_KEYS.pinHash, hashed);
+      document.getElementById("changePinInput").value = "";
+      showToast("Code PIN mis à jour");
+    });
+
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      state.searchQuery = e.target.value;
+      renderProducts();
+    });
+
+    document.getElementById("openCartBtn").addEventListener("click", () => {
+      renderCartModal();
+      openModal("cartModal");
+    });
+
+    document.getElementById("sendWhatsappBtn").addEventListener("click", sendWhatsappOrder);
+    document.getElementById("vendorBtn").addEventListener("click", openVendorSpace);
+    document.getElementById("footerVendorBtn").addEventListener("click", openVendorSpace);
+
+    document.getElementById("shareBtn").addEventListener("click", async () => {
+      const url = window.location.href;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: state.settings.shopName, url });
+          return;
+        } catch (e) {}
+      }
+      if (navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(url);
+          showToast("Lien copié !");
+          return;
+        } catch (e) {}
+      }
+      showToast(url);
+    });
+
+    document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
+      backdrop.addEventListener("click", (e) => {
+        if (e.target === backdrop) {
+          backdrop.classList.remove("open");
+        }
+      });
+    });
+
+    loadState();
+    renderHeaderAndFooter();
+    renderCategories();
+    renderProducts();
+    renderCartBar();
+  </script>
+</body>
+</html>
