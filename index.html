@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" translate="no">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Boutique en ligne — Commande WhatsApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="google" content="notranslate" />
+  <title>Ma Boutique — Commande WhatsApp</title>
   <style>
     :root {
       --bg: #f6f7f9;
@@ -23,20 +24,21 @@
       margin: 0;
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: rgba(15, 118, 110, 0.15);
     }
 
     body {
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
-      padding-bottom: 84px;
+      padding-bottom: 92px;
     }
 
     header {
       position: sticky;
       top: 0;
       z-index: 20;
-      background: rgba(255, 255, 255, 0.96);
+      background: rgba(255, 255, 255, 0.97);
       backdrop-filter: blur(8px);
       border-bottom: 1px solid var(--border);
     }
@@ -82,18 +84,31 @@
 
     button {
       cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
       border: 1px solid var(--border);
       background: var(--card);
       color: var(--text);
       border-radius: 10px;
-      padding: 8px 12px;
+      padding: 9px 13px;
       font-size: 0.88rem;
       font-weight: 600;
-      transition: 0.15s ease;
+      min-height: 38px;
+      transition: background 0.15s ease, transform 0.08s ease;
+    }
+
+    button:active {
+      transform: scale(0.98);
     }
 
     button:hover {
       background: #f3f4f6;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
     }
 
     .btn-primary {
@@ -138,7 +153,7 @@
       border-radius: 10px;
       background: #fff;
       color: var(--text);
-      font-size: 0.95rem;
+      font-size: 16px;
     }
 
     .categories {
@@ -249,7 +264,7 @@
     .card-actions button {
       flex: 1;
       padding: 8px;
-      font-size: 0.82rem;
+      font-size: 0.84rem;
     }
 
     .cart-bar {
@@ -276,12 +291,12 @@
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(0, 0, 0, 0.58);
       display: none;
       align-items: center;
       justify-content: center;
       padding: 14px;
-      z-index: 40;
+      z-index: 50;
     }
 
     .modal-backdrop.open {
@@ -295,14 +310,17 @@
       max-width: 560px;
       max-height: 88vh;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       padding: 18px;
       border: 1px solid var(--border);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
     }
 
     .modal-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 10px;
       margin-bottom: 14px;
     }
 
@@ -323,6 +341,7 @@
       margin-bottom: 14px;
       border-bottom: 1px solid var(--border);
       padding-bottom: 8px;
+      flex-wrap: wrap;
     }
 
     .tab-btn.active {
@@ -353,16 +372,18 @@
 
     .toast {
       position: fixed;
-      bottom: 76px;
+      bottom: 82px;
       left: 50%;
       transform: translateX(-50%);
       background: #111827;
       color: #fff;
-      padding: 8px 14px;
+      padding: 9px 16px;
       border-radius: 999px;
-      font-size: 0.84rem;
-      z-index: 60;
+      font-size: 0.85rem;
+      z-index: 80;
       display: none;
+      max-width: 90vw;
+      text-align: center;
     }
 
     .toast.show {
@@ -376,6 +397,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 10px;
       color: var(--muted);
       font-size: 0.82rem;
     }
@@ -389,15 +411,15 @@
         <span class="brand-sub" id="shopSubDisplay">Commande directe WhatsApp • Paiement à la livraison</span>
       </div>
       <div class="header-actions">
-        <button id="shareBtn" type="button">Partager</button>
-        <button id="vendorBtn" type="button" title="Espace Vendeur">🔒 Vendeur</button>
+        <button id="shareBtn" type="button" data-action="share">Partager</button>
+        <button id="vendorBtn" type="button" data-action="open-vendor" title="Espace Vendeur">🔒 Vendeur</button>
       </div>
     </div>
   </header>
 
   <main class="container">
     <div class="controls">
-      <input id="searchInput" class="search-input" type="search" placeholder="Rechercher un produit..." />
+      <input id="searchInput" class="search-input" type="search" placeholder="Rechercher un produit..." autocomplete="off" />
       <div class="categories" id="categoryList"></div>
     </div>
     <div class="grid" id="productGrid"></div>
@@ -405,7 +427,7 @@
 
   <footer>
     <span id="footerPhone">WhatsApp : +226 44 39 54 80</span>
-    <button id="footerVendorBtn" type="button">Espace Vendeur</button>
+    <button id="footerVendorBtn" type="button" data-action="open-vendor">Espace Vendeur</button>
   </footer>
 
   <div class="cart-bar">
@@ -414,7 +436,7 @@
         <strong id="cartCountLabel">0 article</strong>
         <div style="font-size:0.84rem;color:var(--muted)">Total : <strong id="cartTotalLabel">0 FCFA</strong></div>
       </div>
-      <button id="openCartBtn" class="btn-wa" type="button">Voir le panier & Commander</button>
+      <button id="openCartBtn" class="btn-wa" type="button" data-action="open-cart">Voir le panier &amp; Commander</button>
     </div>
   </div>
 
@@ -423,7 +445,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3 id="detailTitle">Produit</h3>
-        <button type="button" onclick="closeModal('detailModal')">✕</button>
+        <button type="button" data-close-modal="detailModal">✕</button>
       </div>
       <div id="detailContent"></div>
     </div>
@@ -434,7 +456,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3>Votre panier</h3>
-        <button type="button" onclick="closeModal('cartModal')">✕</button>
+        <button type="button" data-close-modal="cartModal">✕</button>
       </div>
       <div id="cartItemsList"></div>
       <div class="form-group" style="margin-top:12px;">
@@ -449,7 +471,7 @@
         <strong>Total à payer :</strong>
         <strong id="modalCartTotal">0 FCFA</strong>
       </div>
-      <button id="sendWhatsappBtn" class="btn-wa" style="width:100%;padding:12px;" type="button">
+      <button id="sendWhatsappBtn" class="btn-wa" style="width:100%;padding:12px;" type="button" data-action="send-whatsapp">
         Commander sur WhatsApp
       </button>
     </div>
@@ -460,7 +482,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3 id="vendorModalTitle">Espace Vendeur</h3>
-        <button type="button" onclick="closeModal('vendorModal')">✕</button>
+        <button type="button" data-close-modal="vendorModal">✕</button>
       </div>
 
       <!-- Création PIN -->
@@ -476,7 +498,7 @@
           <label for="confirmPinInput">Confirmer le Code PIN</label>
           <input id="confirmPinInput" class="field-input" type="password" maxlength="12" placeholder="Répétez le code PIN" />
         </div>
-        <button id="saveNewPinBtn" class="btn-primary" style="width:100%;padding:11px;" type="button">
+        <button id="saveNewPinBtn" class="btn-primary" style="width:100%;padding:11px;" type="button" data-action="save-new-pin">
           Enregistrer mon Code PIN
         </button>
       </div>
@@ -490,7 +512,7 @@
           <label for="loginPinInput">Code PIN</label>
           <input id="loginPinInput" class="field-input" type="password" maxlength="12" placeholder="Votre code PIN" />
         </div>
-        <button id="unlockVendorBtn" class="btn-primary" style="width:100%;padding:11px;" type="button">
+        <button id="unlockVendorBtn" class="btn-primary" style="width:100%;padding:11px;" type="button" data-action="unlock-vendor">
           Déverrouiller
         </button>
       </div>
@@ -498,9 +520,9 @@
       <!-- Tableau de bord vendeur -->
       <div id="vendorDashboardView" style="display:none;">
         <div class="tabs">
-          <button id="tabProductsBtn" class="tab-btn active" type="button" onclick="switchVendorTab('products')">Produits</button>
-          <button id="tabSettingsBtn" class="tab-btn" type="button" onclick="switchVendorTab('settings')">Boutique & PIN</button>
-          <button class="btn-danger" type="button" style="margin-left:auto;" onclick="lockVendor()">Verrouiller</button>
+          <button id="tabProductsBtn" class="tab-btn active" type="button" data-action="tab-products">Produits</button>
+          <button id="tabSettingsBtn" class="tab-btn" type="button" data-action="tab-settings">Boutique &amp; PIN</button>
+          <button class="btn-danger" type="button" style="margin-left:auto;" data-action="lock-vendor">Verrouiller</button>
         </div>
 
         <div id="vendorProductsTab">
@@ -539,7 +561,7 @@
             </div>
             <div style="display:flex;gap:8px;margin-bottom:16px;">
               <button type="submit" class="btn-primary" style="flex:1;padding:10px;">Enregistrer l'article</button>
-              <button type="button" onclick="resetProductForm()">Réinitialiser</button>
+              <button type="button" data-action="reset-product-form">Réinitialiser</button>
             </div>
           </form>
 
@@ -560,7 +582,7 @@
             <label for="setWhatsapp">Numéro WhatsApp (indicatif + numéro, sans + ni espaces)</label>
             <input id="setWhatsapp" class="field-input" type="tel" placeholder="22644395480" />
           </div>
-          <button id="saveShopSettingsBtn" class="btn-primary" style="width:100%;padding:10px;margin-bottom:18px;" type="button">
+          <button id="saveShopSettingsBtn" class="btn-primary" style="width:100%;padding:10px;margin-bottom:18px;" type="button" data-action="save-shop-settings">
             Enregistrer les infos boutique
           </button>
 
@@ -570,7 +592,7 @@
             <label for="changePinInput">Nouveau Code PIN (4 à 12 caractères)</label>
             <input id="changePinInput" class="field-input" type="password" maxlength="12" placeholder="Nouveau PIN" />
           </div>
-          <button id="updatePinBtn" type="button" style="width:100%;padding:10px;">
+          <button id="updatePinBtn" type="button" style="width:100%;padding:10px;" data-action="update-pin">
             Mettre à jour le Code PIN
           </button>
         </div>
@@ -581,592 +603,746 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    const STORAGE_KEYS = {
-      products: "boutique_wa_products_v1",
-      settings: "boutique_wa_settings_v1",
-      pinHash: "boutique_wa_pin_hash_v1",
-      cart: "boutique_wa_cart_v1"
-    };
+    (function () {
+      "use strict";
 
-    const DEFAULT_SETTINGS = {
-      shopName: "Ma Boutique",
-      shopSub: "Commande rapide via WhatsApp",
-      whatsapp: "22644395480"
-    };
+      var STORAGE_KEYS = {
+        products: "boutique_wa_products_v1",
+        settings: "boutique_wa_settings_v1",
+        pinHash: "boutique_wa_pin_hash_v1",
+        cart: "boutique_wa_cart_v1"
+      };
 
-    const DEFAULT_PRODUCTS = [
-      {
-        id: "prod-1",
-        name: "Article Vedette",
-        category: "Sélection",
-        price: 5000,
-        inStock: true,
-        description: "Produit disponible immédiatement avec commande directe sur WhatsApp.",
-        image: ""
-      }
-    ];
+      var memoryStorage = {};
 
-    let state = {
-      products: [],
-      settings: { ...DEFAULT_SETTINGS },
-      cart: [],
-      selectedCategory: "Tous",
-      searchQuery: "",
-      vendorUnlocked: false,
-      draftImage: ""
-    };
-
-    function showToast(msg) {
-      const el = document.getElementById("toast");
-      el.textContent = msg;
-      el.classList.add("show");
-      clearTimeout(window.__toastTimer);
-      window.__toastTimer = setTimeout(() => el.classList.remove("show"), 2400);
-    }
-
-    function formatFcfa(amount) {
-      const n = Number(amount) || 0;
-      return n.toLocaleString("fr-FR") + " FCFA";
-    }
-
-    function loadState() {
-      try {
-        const savedSettings = JSON.parse(localStorage.getItem(STORAGE_KEYS.settings) || "null");
-        if (savedSettings && typeof savedSettings === "object") {
-          state.settings = { ...DEFAULT_SETTINGS, ...savedSettings };
+      function safeGetItem(key) {
+        try {
+          return window.localStorage.getItem(key);
+        } catch (e) {
+          return Object.prototype.hasOwnProperty.call(memoryStorage, key) ? memoryStorage[key] : null;
         }
-      } catch (e) {}
-
-      try {
-        const savedProducts = JSON.parse(localStorage.getItem(STORAGE_KEYS.products) || "null");
-        state.products = Array.isArray(savedProducts) && savedProducts.length ? savedProducts : [...DEFAULT_PRODUCTS];
-      } catch (e) {
-        state.products = [...DEFAULT_PRODUCTS];
       }
 
-      try {
-        const savedCart = JSON.parse(localStorage.getItem(STORAGE_KEYS.cart) || "[]");
-        state.cart = Array.isArray(savedCart) ? savedCart : [];
-      } catch (e) {
-        state.cart = [];
-      }
-    }
-
-    function saveProducts() {
-      try {
-        localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(state.products));
-      } catch (e) {
-        showToast("Espace de stockage plein : utilisez une image plus légère ou une URL.");
-      }
-    }
-
-    function saveSettings() {
-      try {
-        localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(state.settings));
-      } catch (e) {}
-    }
-
-    function saveCart() {
-      try {
-        localStorage.setItem(STORAGE_KEYS.cart, JSON.stringify(state.cart));
-      } catch (e) {}
-    }
-
-    async function hashPin(pin) {
-      const enc = new TextEncoder().encode(pin);
-      const buf = await crypto.subtle.digest("SHA-256", enc);
-      return Array.from(new Uint8Array(buf))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-    }
-
-    function hasVendorPin() {
-      return Boolean(localStorage.getItem(STORAGE_KEYS.pinHash));
-    }
-
-    function placeholderSvg(label) {
-      const safe = String(label || "Produit").slice(0, 18).replace(/[<>&"]/g, "");
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#e5e7eb"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#4b5563" font-size="22" font-family="sans-serif">${safe}</text></svg>`;
-      return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-    }
-
-    function renderHeaderAndFooter() {
-      document.title = state.settings.shopName || "Boutique en ligne";
-      document.getElementById("shopNameDisplay").textContent = state.settings.shopName || "Ma Boutique";
-      document.getElementById("shopSubDisplay").textContent = state.settings.shopSub || "";
-      const phoneClean = (state.settings.whatsapp || "").replace(/\D/g, "");
-      document.getElementById("footerPhone").textContent = "WhatsApp : +" + (phoneClean || "22644395480");
-    }
-
-    function renderCategories() {
-      const cats = ["Tous", ...new Set(state.products.map((p) => (p.category || "Général").trim()).filter(Boolean))];
-      const container = document.getElementById("categoryList");
-      container.innerHTML = "";
-      cats.forEach((cat) => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "cat-btn" + (state.selectedCategory === cat ? " active" : "");
-        btn.textContent = cat;
-        btn.onclick = () => {
-          state.selectedCategory = cat;
-          renderCategories();
-          renderProducts();
-        };
-        container.appendChild(btn);
-      });
-    }
-
-    function renderProducts() {
-      const grid = document.getElementById("productGrid");
-      const q = state.searchQuery.trim().toLowerCase();
-      const filtered = state.products.filter((p) => {
-        const matchCat = state.selectedCategory === "Tous" || (p.category || "Général") === state.selectedCategory;
-        const matchQuery =
-          !q ||
-          (p.name || "").toLowerCase().includes(q) ||
-          (p.description || "").toLowerCase().includes(q) ||
-          (p.category || "").toLowerCase().includes(q);
-        return matchCat && matchQuery;
-      });
-
-      if (!filtered.length) {
-        grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:24px;">Aucun article trouvé.</p>`;
-        return;
+      function safeSetItem(key, value) {
+        memoryStorage[key] = value;
+        try {
+          window.localStorage.setItem(key, value);
+          return true;
+        } catch (e) {
+          return false;
+        }
       }
 
-      grid.innerHTML = "";
-      filtered.forEach((p) => {
-        const card = document.createElement("article");
-        card.className = "card";
-        const imgSrc = p.image || placeholderSvg(p.name);
-        card.innerHTML = `
-          <div>
-            <div class="card-img-wrap">
-              <img src="${imgSrc}" alt="${escapeHtml(p.name)}" loading="lazy" />
-              ${p.inStock === false ? `<span class="badge-rupture">Rupture</span>` : ""}
-            </div>
-            <div class="card-body">
-              <span class="card-cat">${escapeHtml(p.category || "Général")}</span>
-              <h3 class="card-title">${escapeHtml(p.name)}</h3>
-              <p class="card-desc">${escapeHtml(p.description || "")}</p>
-              <div class="card-price">${formatFcfa(p.price)}</div>
-            </div>
-          </div>
-          <div class="card-actions">
-            <button type="button" onclick="openProductDetail('${p.id}')">Détails</button>
-            <button type="button" class="btn-primary" ${p.inStock === false ? "disabled" : ""} onclick="addToCart('${p.id}')">
-              ${p.inStock === false ? "Indisponible" : "Ajouter"}
-            </button>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-    }
+      var DEFAULT_SETTINGS = {
+        shopName: "Ma Boutique",
+        shopSub: "Commande rapide via WhatsApp",
+        whatsapp: "22644395480"
+      };
 
-    function escapeHtml(str) {
-      return String(str || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-    }
-
-    function openProductDetail(id) {
-      const p = state.products.find((item) => item.id === id);
-      if (!p) return;
-      document.getElementById("detailTitle").textContent = p.name;
-      const imgSrc = p.image || placeholderSvg(p.name);
-      document.getElementById("detailContent").innerHTML = `
-        <div style="width:100%;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#f3f4f6;margin-bottom:12px;">
-          <img src="${imgSrc}" alt="${escapeHtml(p.name)}" style="width:100%;height:100%;object-fit:cover;" />
-        </div>
-        <div style="font-size:0.8rem;color:var(--accent);font-weight:700;margin-bottom:4px;">${escapeHtml(p.category || "Général")}</div>
-        <div style="font-size:1.15rem;font-weight:800;margin-bottom:8px;">${formatFcfa(p.price)} • ${p.inStock === false ? "Rupture de stock" : "En stock"}</div>
-        <p style="font-size:0.92rem;color:var(--muted);margin-bottom:14px;">${escapeHtml(p.description || "Aucune description supplémentaire.")}</p>
-        <button type="button" class="btn-primary" style="width:100%;padding:11px;" ${p.inStock === false ? "disabled" : ""} onclick="addToCart('${p.id}');closeModal('detailModal');">
-          ${p.inStock === false ? "Indisponible" : "Ajouter au panier"}
-        </button>
-      `;
-      openModal("detailModal");
-    }
-
-    function addToCart(id) {
-      const p = state.products.find((item) => item.id === id);
-      if (!p || p.inStock === false) return;
-      const existing = state.cart.find((item) => item.id === id);
-      if (existing) {
-        existing.qty += 1;
-      } else {
-        state.cart.push({ id: p.id, name: p.name, price: Number(p.price) || 0, qty: 1 });
-      }
-      saveCart();
-      renderCartBar();
-      showToast("Ajouté au panier");
-    }
-
-    function updateCartQty(id, delta) {
-      const item = state.cart.find((c) => c.id === id);
-      if (!item) return;
-      item.qty += delta;
-      if (item.qty <= 0) {
-        state.cart = state.cart.filter((c) => c.id !== id);
-      }
-      saveCart();
-      renderCartBar();
-      renderCartModal();
-    }
-
-    function getCartTotals() {
-      let count = 0;
-      let total = 0;
-      state.cart.forEach((item) => {
-        count += item.qty;
-        total += (Number(item.price) || 0) * item.qty;
-      });
-      return { count, total };
-    }
-
-    function renderCartBar() {
-      const { count, total } = getCartTotals();
-      document.getElementById("cartCountLabel").textContent = count + (count > 1 ? " articles" : " article");
-      document.getElementById("cartTotalLabel").textContent = formatFcfa(total);
-    }
-
-    function renderCartModal() {
-      const list = document.getElementById("cartItemsList");
-      const { total } = getCartTotals();
-      document.getElementById("modalCartTotal").textContent = formatFcfa(total);
-
-      if (!state.cart.length) {
-        list.innerHTML = `<p style="color:var(--muted);padding:12px 0;">Votre panier est vide.</p>`;
-        return;
-      }
-
-      list.innerHTML = "";
-      state.cart.forEach((item) => {
-        const row = document.createElement("div");
-        row.className = "cart-item";
-        row.innerHTML = `
-          <div>
-            <div style="font-weight:700;font-size:0.92rem;">${escapeHtml(item.name)}</div>
-            <div style="font-size:0.82rem;color:var(--muted);">${formatFcfa(item.price)} l'unité</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <button type="button" onclick="updateCartQty('${item.id}', -1)">-</button>
-            <span style="min-width:20px;text-align:center;font-weight:700;">${item.qty}</span>
-            <button type="button" onclick="updateCartQty('${item.id}', 1)">+</button>
-          </div>
-        `;
-        list.appendChild(row);
-      });
-    }
-
-    function sendWhatsappOrder() {
-      if (!state.cart.length) {
-        showToast("Ajoutez au moins un article avant de commander.");
-        return;
-      }
-      const phone = (state.settings.whatsapp || "22644395480").replace(/\D/g, "");
-      const name = document.getElementById("customerName").value.trim();
-      const zone = document.getElementById("customerZone").value.trim();
-      const { total } = getCartTotals();
-
-      const lines = [
-        `Bonjour *${state.settings.shopName}*, je souhaite passer commande :`,
-        ""
+      var DEFAULT_PRODUCTS = [
+        {
+          id: "prod-1",
+          name: "Article Vedette",
+          category: "Sélection",
+          price: 5000,
+          inStock: true,
+          description: "Produit disponible immédiatement avec commande directe sur WhatsApp.",
+          image: ""
+        }
       ];
-      state.cart.forEach((item) => {
-        lines.push(`• ${item.qty} x ${item.name} — ${formatFcfa((Number(item.price) || 0) * item.qty)}`);
-      });
-      lines.push("", `*Total : ${formatFcfa(total)}*`);
-      if (name) lines.push(`Client : ${name}`);
-      if (zone) lines.push(`Livraison : ${zone}`);
 
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("
-"))}`;
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
+      var state = {
+        products: [],
+        settings: {
+          shopName: DEFAULT_SETTINGS.shopName,
+          shopSub: DEFAULT_SETTINGS.shopSub,
+          whatsapp: DEFAULT_SETTINGS.whatsapp
+        },
+        cart: [],
+        selectedCategory: "Tous",
+        searchQuery: "",
+        vendorUnlocked: false,
+        draftImage: ""
+      };
 
-    function openModal(id) {
-      document.getElementById(id).classList.add("open");
-    }
-
-    function closeModal(id) {
-      document.getElementById(id).classList.remove("open");
-    }
-
-    function openVendorSpace() {
-      document.getElementById("createPinView").style.display = "none";
-      document.getElementById("loginPinView").style.display = "none";
-      document.getElementById("vendorDashboardView").style.display = "none";
-
-      if (!hasVendorPin()) {
-        document.getElementById("vendorModalTitle").textContent = "Créer mon Code PIN Vendeur";
-        document.getElementById("createPinView").style.display = "block";
-      } else if (!state.vendorUnlocked) {
-        document.getElementById("vendorModalTitle").textContent = "Connexion Vendeur";
-        document.getElementById("loginPinView").style.display = "block";
-        document.getElementById("loginPinInput").value = "";
-      } else {
-        document.getElementById("vendorModalTitle").textContent = "Gestion Boutique";
-        document.getElementById("vendorDashboardView").style.display = "block";
-        populateVendorForms();
+      function showToast(msg) {
+        var el = document.getElementById("toast");
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.add("show");
+        clearTimeout(window.__toastTimer);
+        window.__toastTimer = setTimeout(function () {
+          el.classList.remove("show");
+        }, 2400);
       }
-      openModal("vendorModal");
-    }
 
-    function lockVendor() {
-      state.vendorUnlocked = false;
-      closeModal("vendorModal");
-      showToast("Espace vendeur verrouillé");
-    }
+      function formatFcfa(amount) {
+        var n = Math.round(Number(amount) || 0);
+        return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " FCFA";
+      }
 
-    function switchVendorTab(tab) {
-      const isProd = tab === "products";
-      document.getElementById("tabProductsBtn").classList.toggle("active", isProd);
-      document.getElementById("tabSettingsBtn").classList.toggle("active", !isProd);
-      document.getElementById("vendorProductsTab").style.display = isProd ? "block" : "none";
-      document.getElementById("vendorSettingsTab").style.display = isProd ? "none" : "block";
-    }
-
-    function populateVendorForms() {
-      document.getElementById("setShopName").value = state.settings.shopName || "";
-      document.getElementById("setShopSub").value = state.settings.shopSub || "";
-      document.getElementById("setWhatsapp").value = state.settings.whatsapp || "";
-      renderAdminProducts();
-    }
-
-    function renderAdminProducts() {
-      const wrap = document.getElementById("adminProductList");
-      wrap.innerHTML = "";
-      state.products.forEach((p) => {
-        const div = document.createElement("div");
-        div.className = "admin-item";
-        div.innerHTML = `
-          <div>
-            <div style="font-weight:700;font-size:0.9rem;">${escapeHtml(p.name)} (${formatFcfa(p.price)})</div>
-            <div style="font-size:0.78rem;color:var(--muted);">${escapeHtml(p.category || "Général")} • ${p.inStock === false ? "Rupture" : "En stock"}</div>
-          </div>
-          <div style="display:flex;gap:6px;">
-            <button type="button" onclick="editProduct('${p.id}')">Modifier</button>
-            <button type="button" class="btn-danger" onclick="deleteProduct('${p.id}')">Suppr.</button>
-          </div>
-        `;
-        wrap.appendChild(div);
-      });
-    }
-
-    function editProduct(id) {
-      const p = state.products.find((item) => item.id === id);
-      if (!p) return;
-      switchVendorTab("products");
-      document.getElementById("editProductId").value = p.id;
-      document.getElementById("prodName").value = p.name || "";
-      document.getElementById("prodCategory").value = p.category || "";
-      document.getElementById("prodPrice").value = p.price || 0;
-      document.getElementById("prodStock").value = String(p.inStock !== false);
-      document.getElementById("prodDesc").value = p.description || "";
-      document.getElementById("prodImageUrl").value = p.image && !p.image.startsWith("data:") ? p.image : "";
-      state.draftImage = p.image || "";
-    }
-
-    function deleteProduct(id) {
-      state.products = state.products.filter((item) => item.id !== id);
-      saveProducts();
-      renderCategories();
-      renderProducts();
-      renderAdminProducts();
-      showToast("Article supprimé");
-    }
-
-    function resetProductForm() {
-      document.getElementById("editProductId").value = "";
-      document.getElementById("productForm").reset();
-      state.draftImage = "";
-    }
-
-    function compressImageFile(file, callback) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const img = new Image();
-        img.onload = () => {
-          const maxSide = 720;
-          let { width, height } = img;
-          if (width > maxSide || height > maxSide) {
-            if (width > height) {
-              height = Math.round((height * maxSide) / width);
-              width = maxSide;
-            } else {
-              width = Math.round((width * maxSide) / height);
-              height = maxSide;
+      function loadState() {
+        try {
+          var rawSettings = safeGetItem(STORAGE_KEYS.settings);
+          if (rawSettings) {
+            var parsedSettings = JSON.parse(rawSettings);
+            if (parsedSettings && typeof parsedSettings === "object") {
+              state.settings.shopName = parsedSettings.shopName || DEFAULT_SETTINGS.shopName;
+              state.settings.shopSub = parsedSettings.shopSub || "";
+              state.settings.whatsapp = parsedSettings.whatsapp || DEFAULT_SETTINGS.whatsapp;
             }
           }
-          const canvas = document.createElement("canvas");
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, width, height);
-          callback(canvas.toDataURL("image/jpeg", 0.72));
-        };
-        img.src = ev.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
+        } catch (e) {}
 
-    document.getElementById("prodImageFile").addEventListener("change", (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      compressImageFile(file, (dataUrl) => {
-        state.draftImage = dataUrl;
-        showToast("Photo prête");
-      });
-    });
-
-    document.getElementById("productForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const editId = document.getElementById("editProductId").value;
-      const name = document.getElementById("prodName").value.trim();
-      const category = document.getElementById("prodCategory").value.trim() || "Général";
-      const price = Number(document.getElementById("prodPrice").value) || 0;
-      const inStock = document.getElementById("prodStock").value === "true";
-      const description = document.getElementById("prodDesc").value.trim();
-      const urlVal = document.getElementById("prodImageUrl").value.trim();
-      const finalImage = urlVal || state.draftImage || "";
-
-      if (!name) return;
-
-      if (editId) {
-        const idx = state.products.findIndex((p) => p.id === editId);
-        if (idx !== -1) {
-          state.products[idx] = {
-            ...state.products[idx],
-            name,
-            category,
-            price,
-            inStock,
-            description,
-            image: finalImage
-          };
+        try {
+          var rawProducts = safeGetItem(STORAGE_KEYS.products);
+          if (rawProducts) {
+            var parsedProducts = JSON.parse(rawProducts);
+            state.products = Array.isArray(parsedProducts) ? parsedProducts : DEFAULT_PRODUCTS.slice();
+          } else {
+            state.products = DEFAULT_PRODUCTS.slice();
+          }
+        } catch (e) {
+          state.products = DEFAULT_PRODUCTS.slice();
         }
-      } else {
-        state.products.unshift({
-          id: "prod-" + Date.now(),
-          name,
-          category,
-          price,
-          inStock,
-          description,
-          image: finalImage
+
+        try {
+          var rawCart = safeGetItem(STORAGE_KEYS.cart);
+          if (rawCart) {
+            var parsedCart = JSON.parse(rawCart);
+            state.cart = Array.isArray(parsedCart) ? parsedCart : [];
+          } else {
+            state.cart = [];
+          }
+        } catch (e) {
+          state.cart = [];
+        }
+      }
+
+      function saveProducts() {
+        var ok = safeSetItem(STORAGE_KEYS.products, JSON.stringify(state.products));
+        if (!ok) {
+          showToast("Mémoire locale pleine : utilisez une image plus légère ou une URL.");
+        }
+      }
+
+      function saveSettings() {
+        safeSetItem(STORAGE_KEYS.settings, JSON.stringify(state.settings));
+      }
+
+      function saveCart() {
+        safeSetItem(STORAGE_KEYS.cart, JSON.stringify(state.cart));
+      }
+
+      function fallbackHash(str) {
+        var h1 = 0xdeadbeef;
+        var h2 = 0x41c6ce57;
+        for (var i = 0; i < str.length; i++) {
+          var ch = str.charCodeAt(i);
+          h1 = Math.imul(h1 ^ ch, 2654435761);
+          h2 = Math.imul(h2 ^ ch, 1597334677);
+        }
+        h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+        h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+        return ("00000000" + (h2 >>> 0).toString(16)).slice(-8) + ("00000000" + (h1 >>> 0).toString(16)).slice(-8);
+      }
+
+      function hashPin(pin) {
+        var salted = "boutique_wa_salt:" + String(pin);
+        if (window.crypto && window.crypto.subtle && typeof window.TextEncoder !== "undefined") {
+          try {
+            var enc = new TextEncoder().encode(salted);
+            return window.crypto.subtle.digest("SHA-256", enc).then(function (buf) {
+              var arr = Array.from(new Uint8Array(buf));
+              return arr.map(function (b) {
+                return ("0" + b.toString(16)).slice(-2);
+              }).join("");
+            }).catch(function () {
+              return fallbackHash(salted);
+            });
+          } catch (e) {
+            return Promise.resolve(fallbackHash(salted));
+          }
+        }
+        return Promise.resolve(fallbackHash(salted));
+      }
+
+      function hasVendorPin() {
+        return Boolean(safeGetItem(STORAGE_KEYS.pinHash));
+      }
+
+      function escapeHtml(str) {
+        return String(str || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function placeholderSvg(label) {
+        var safe = String(label || "Produit").slice(0, 18).replace(/[<>&"]/g, "");
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">' +
+          '<rect width="400" height="300" fill="#e5e7eb"/>' +
+          '<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#4b5563" font-size="22" font-family="sans-serif">' +
+          safe + '</text></svg>';
+        return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+      }
+
+      function renderHeaderAndFooter() {
+        document.title = state.settings.shopName || "Ma Boutique";
+        document.getElementById("shopNameDisplay").textContent = state.settings.shopName || "Ma Boutique";
+        document.getElementById("shopSubDisplay").textContent = state.settings.shopSub || "";
+        var phoneClean = String(state.settings.whatsapp || "").replace(/\D/g, "");
+        document.getElementById("footerPhone").textContent = "WhatsApp : +" + (phoneClean || "22644395480");
+      }
+
+      function renderCategories() {
+        var seen = {};
+        var cats = ["Tous"];
+        state.products.forEach(function (p) {
+          var c = String(p.category || "Général").trim() || "Général";
+          if (!seen[c]) {
+            seen[c] = true;
+            cats.push(c);
+          }
+        });
+
+        if (cats.indexOf(state.selectedCategory) === -1) {
+          state.selectedCategory = "Tous";
+        }
+
+        var container = document.getElementById("categoryList");
+        container.innerHTML = "";
+        cats.forEach(function (cat) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "cat-btn" + (state.selectedCategory === cat ? " active" : "");
+          btn.textContent = cat;
+          btn.setAttribute("data-category", cat);
+          container.appendChild(btn);
         });
       }
 
-      saveProducts();
-      renderCategories();
-      renderProducts();
-      renderAdminProducts();
-      resetProductForm();
-      showToast("Article enregistré");
-    });
+      function renderProducts() {
+        var grid = document.getElementById("productGrid");
+        var q = state.searchQuery.trim().toLowerCase();
+        var filtered = state.products.filter(function (p) {
+          var cat = String(p.category || "Général").trim() || "Général";
+          var matchCat = state.selectedCategory === "Tous" || cat === state.selectedCategory;
+          var matchQuery =
+            !q ||
+            String(p.name || "").toLowerCase().indexOf(q) !== -1 ||
+            String(p.description || "").toLowerCase().indexOf(q) !== -1 ||
+            cat.toLowerCase().indexOf(q) !== -1;
+          return matchCat && matchQuery;
+        });
 
-    document.getElementById("saveNewPinBtn").addEventListener("click", async () => {
-      const pin1 = document.getElementById("newPinInput").value.trim();
-      const pin2 = document.getElementById("confirmPinInput").value.trim();
-      if (pin1.length < 4 || pin1.length > 12) {
-        showToast("Le Code PIN doit contenir entre 4 et 12 caractères.");
-        return;
-      }
-      if (pin1 !== pin2) {
-        showToast("Les deux Codes PIN ne correspondent pas.");
-        return;
-      }
-      const hashed = await hashPin(pin1);
-      localStorage.setItem(STORAGE_KEYS.pinHash, hashed);
-      state.vendorUnlocked = true;
-      document.getElementById("newPinInput").value = "";
-      document.getElementById("confirmPinInput").value = "";
-      showToast("Code PIN créé !");
-      openVendorSpace();
-    });
-
-    document.getElementById("unlockVendorBtn").addEventListener("click", async () => {
-      const pin = document.getElementById("loginPinInput").value.trim();
-      const stored = localStorage.getItem(STORAGE_KEYS.pinHash);
-      const hashed = await hashPin(pin);
-      if (hashed === stored) {
-        state.vendorUnlocked = true;
-        showToast("Accès autorisé");
-        openVendorSpace();
-      } else {
-        showToast("Code PIN incorrect");
-      }
-    });
-
-    document.getElementById("saveShopSettingsBtn").addEventListener("click", () => {
-      state.settings.shopName = document.getElementById("setShopName").value.trim() || "Ma Boutique";
-      state.settings.shopSub = document.getElementById("setShopSub").value.trim();
-      state.settings.whatsapp = (document.getElementById("setWhatsapp").value || "").replace(/\D/g, "") || "22644395480";
-      saveSettings();
-      renderHeaderAndFooter();
-      showToast("Paramètres enregistrés");
-    });
-
-    document.getElementById("updatePinBtn").addEventListener("click", async () => {
-      const nextPin = document.getElementById("changePinInput").value.trim();
-      if (nextPin.length < 4 || nextPin.length > 12) {
-        showToast("Le Code PIN doit contenir entre 4 et 12 caractères.");
-        return;
-      }
-      const hashed = await hashPin(nextPin);
-      localStorage.setItem(STORAGE_KEYS.pinHash, hashed);
-      document.getElementById("changePinInput").value = "";
-      showToast("Code PIN mis à jour");
-    });
-
-    document.getElementById("searchInput").addEventListener("input", (e) => {
-      state.searchQuery = e.target.value;
-      renderProducts();
-    });
-
-    document.getElementById("openCartBtn").addEventListener("click", () => {
-      renderCartModal();
-      openModal("cartModal");
-    });
-
-    document.getElementById("sendWhatsappBtn").addEventListener("click", sendWhatsappOrder);
-    document.getElementById("vendorBtn").addEventListener("click", openVendorSpace);
-    document.getElementById("footerVendorBtn").addEventListener("click", openVendorSpace);
-
-    document.getElementById("shareBtn").addEventListener("click", async () => {
-      const url = window.location.href;
-      if (navigator.share) {
-        try {
-          await navigator.share({ title: state.settings.shopName, url });
+        if (!filtered.length) {
+          grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:24px;">Aucun article trouvé.</p>';
           return;
-        } catch (e) {}
-      }
-      if (navigator.clipboard) {
-        try {
-          await navigator.clipboard.writeText(url);
-          showToast("Lien copié !");
-          return;
-        } catch (e) {}
-      }
-      showToast(url);
-    });
+        }
 
-    document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
-      backdrop.addEventListener("click", (e) => {
-        if (e.target === backdrop) {
-          backdrop.classList.remove("open");
+        grid.innerHTML = "";
+        filtered.forEach(function (p) {
+          var card = document.createElement("article");
+          card.className = "card";
+          var imgSrc = p.image || placeholderSvg(p.name);
+          var outOfStock = p.inStock === false;
+          card.innerHTML =
+            '<div>' +
+              '<div class="card-img-wrap">' +
+                '<img src="' + imgSrc + '" alt="' + escapeHtml(p.name) + '" loading="lazy" />' +
+                (outOfStock ? '<span class="badge-rupture">Rupture</span>' : '') +
+              '</div>' +
+              '<div class="card-body">' +
+                '<span class="card-cat">' + escapeHtml(p.category || "Général") + '</span>' +
+                '<h3 class="card-title">' + escapeHtml(p.name) + '</h3>' +
+                '<p class="card-desc">' + escapeHtml(p.description || "") + '</p>' +
+                '<div class="card-price">' + formatFcfa(p.price) + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="card-actions">' +
+              '<button type="button" data-action="detail" data-id="' + escapeHtml(p.id) + '">Détails</button>' +
+              '<button type="button" class="btn-primary" ' + (outOfStock ? 'disabled ' : '') +
+                'data-action="add-cart" data-id="' + escapeHtml(p.id) + '">' +
+                (outOfStock ? "Indisponible" : "Ajouter") +
+              '</button>' +
+            '</div>';
+          grid.appendChild(card);
+        });
+      }
+
+      function openModal(id) {
+        var el = document.getElementById(id);
+        if (el) {
+          el.classList.add("open");
+        }
+      }
+
+      function closeModal(id) {
+        var el = document.getElementById(id);
+        if (el) {
+          el.classList.remove("open");
+        }
+      }
+
+      function openProductDetail(id) {
+        var p = state.products.find(function (item) {
+          return item.id === id;
+        });
+        if (!p) return;
+        document.getElementById("detailTitle").textContent = p.name;
+        var imgSrc = p.image || placeholderSvg(p.name);
+        var outOfStock = p.inStock === false;
+        document.getElementById("detailContent").innerHTML =
+          '<div style="width:100%;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#f3f4f6;margin-bottom:12px;">' +
+            '<img src="' + imgSrc + '" alt="' + escapeHtml(p.name) + '" style="width:100%;height:100%;object-fit:cover;" />' +
+          '</div>' +
+          '<div style="font-size:0.8rem;color:var(--accent);font-weight:700;margin-bottom:4px;">' + escapeHtml(p.category || "Général") + '</div>' +
+          '<div style="font-size:1.15rem;font-weight:800;margin-bottom:8px;">' + formatFcfa(p.price) + ' • ' + (outOfStock ? "Rupture de stock" : "En stock") + '</div>' +
+          '<p style="font-size:0.92rem;color:var(--muted);margin-bottom:14px;">' + escapeHtml(p.description || "Aucune description supplémentaire.") + '</p>' +
+          '<button type="button" class="btn-primary" style="width:100%;padding:11px;" ' + (outOfStock ? 'disabled ' : '') +
+            'data-action="add-cart-close-detail" data-id="' + escapeHtml(p.id) + '">' +
+            (outOfStock ? "Indisponible" : "Ajouter au panier") +
+          '</button>';
+        openModal("detailModal");
+      }
+
+      function addToCart(id) {
+        var p = state.products.find(function (item) {
+          return item.id === id;
+        });
+        if (!p || p.inStock === false) return;
+        var existing = state.cart.find(function (item) {
+          return item.id === id;
+        });
+        if (existing) {
+          existing.qty += 1;
+        } else {
+          state.cart.push({
+            id: p.id,
+            name: p.name,
+            price: Number(p.price) || 0,
+            qty: 1
+          });
+        }
+        saveCart();
+        renderCartBar();
+        showToast("Ajouté au panier");
+      }
+
+      function updateCartQty(id, delta) {
+        var item = state.cart.find(function (c) {
+          return c.id === id;
+        });
+        if (!item) return;
+        item.qty += delta;
+        if (item.qty <= 0) {
+          state.cart = state.cart.filter(function (c) {
+            return c.id !== id;
+          });
+        }
+        saveCart();
+        renderCartBar();
+        renderCartModal();
+      }
+
+      function getCartTotals() {
+        var count = 0;
+        var total = 0;
+        state.cart.forEach(function (item) {
+          count += item.qty;
+          total += (Number(item.price) || 0) * item.qty;
+        });
+        return { count: count, total: total };
+      }
+
+      function renderCartBar() {
+        var totals = getCartTotals();
+        document.getElementById("cartCountLabel").textContent = totals.count + (totals.count > 1 ? " articles" : " article");
+        document.getElementById("cartTotalLabel").textContent = formatFcfa(totals.total);
+      }
+
+      function renderCartModal() {
+        var list = document.getElementById("cartItemsList");
+        var totals = getCartTotals();
+        document.getElementById("modalCartTotal").textContent = formatFcfa(totals.total);
+
+        if (!state.cart.length) {
+          list.innerHTML = '<p style="color:var(--muted);padding:12px 0;">Votre panier est vide.</p>';
+          return;
+        }
+
+        list.innerHTML = "";
+        state.cart.forEach(function (item) {
+          var row = document.createElement("div");
+          row.className = "cart-item";
+          row.innerHTML =
+            '<div>' +
+              '<div style="font-weight:700;font-size:0.92rem;">' + escapeHtml(item.name) + '</div>' +
+              '<div style="font-size:0.82rem;color:var(--muted);">' + formatFcfa(item.price) + " l'unité</div>" +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:6px;">' +
+              '<button type="button" data-action="cart-dec" data-id="' + escapeHtml(item.id) + '">-</button>' +
+              '<span style="min-width:22px;text-align:center;font-weight:700;">' + item.qty + '</span>' +
+              '<button type="button" data-action="cart-inc" data-id="' + escapeHtml(item.id) + '">+</button>' +
+            '</div>';
+          list.appendChild(row);
+        });
+      }
+
+      function sendWhatsappOrder() {
+        if (!state.cart.length) {
+          showToast("Ajoutez au moins un article avant de commander.");
+          return;
+        }
+        var phone = String(state.settings.whatsapp || "22644395480").replace(/\D/g, "") || "22644395480";
+        var name = document.getElementById("customerName").value.trim();
+        var zone = document.getElementById("customerZone").value.trim();
+        var totals = getCartTotals();
+
+        var lines = [
+          "Bonjour *" + (state.settings.shopName || "Ma Boutique") + "*, je souhaite passer commande :",
+          ""
+        ];
+        state.cart.forEach(function (item) {
+          lines.push("• " + item.qty + " x " + item.name + " — " + formatFcfa((Number(item.price) || 0) * item.qty));
+        });
+        lines.push("", "*Total : " + formatFcfa(totals.total) + "*");
+        if (name) lines.push("Client : " + name);
+        if (zone) lines.push("Livraison : " + zone);
+
+        var url = "https://wa.me/" + phone + "?text=" + encodeURIComponent(lines.join("\n"));
+        var win = window.open(url, "_blank", "noopener,noreferrer");
+        if (!win) {
+          window.location.href = url;
+        }
+      }
+
+      function openVendorSpace() {
+        document.getElementById("createPinView").style.display = "none";
+        document.getElementById("loginPinView").style.display = "none";
+        document.getElementById("vendorDashboardView").style.display = "none";
+
+        if (!hasVendorPin()) {
+          document.getElementById("vendorModalTitle").textContent = "Créer mon Code PIN Vendeur";
+          document.getElementById("createPinView").style.display = "block";
+        } else if (!state.vendorUnlocked) {
+          document.getElementById("vendorModalTitle").textContent = "Connexion Vendeur";
+          document.getElementById("loginPinView").style.display = "block";
+          document.getElementById("loginPinInput").value = "";
+        } else {
+          document.getElementById("vendorModalTitle").textContent = "Gestion Boutique";
+          document.getElementById("vendorDashboardView").style.display = "block";
+          populateVendorForms();
+        }
+        openModal("vendorModal");
+      }
+
+      function lockVendor() {
+        state.vendorUnlocked = false;
+        closeModal("vendorModal");
+        showToast("Espace vendeur verrouillé");
+      }
+
+      function switchVendorTab(tab) {
+        var isProd = tab === "products";
+        document.getElementById("tabProductsBtn").classList.toggle("active", isProd);
+        document.getElementById("tabSettingsBtn").classList.toggle("active", !isProd);
+        document.getElementById("vendorProductsTab").style.display = isProd ? "block" : "none";
+        document.getElementById("vendorSettingsTab").style.display = isProd ? "none" : "block";
+      }
+
+      function populateVendorForms() {
+        document.getElementById("setShopName").value = state.settings.shopName || "";
+        document.getElementById("setShopSub").value = state.settings.shopSub || "";
+        document.getElementById("setWhatsapp").value = state.settings.whatsapp || "";
+        renderAdminProducts();
+      }
+
+      function renderAdminProducts() {
+        var wrap = document.getElementById("adminProductList");
+        wrap.innerHTML = "";
+        if (!state.products.length) {
+          wrap.innerHTML = '<p style="color:var(--muted);font-size:0.86rem;">Aucun article enregistré.</p>';
+          return;
+        }
+        state.products.forEach(function (p) {
+          var div = document.createElement("div");
+          div.className = "admin-item";
+          div.innerHTML =
+            '<div>' +
+              '<div style="font-weight:700;font-size:0.9rem;">' + escapeHtml(p.name) + ' (' + formatFcfa(p.price) + ')</div>' +
+              '<div style="font-size:0.78rem;color:var(--muted);">' + escapeHtml(p.category || "Général") + ' • ' + (p.inStock === false ? "Rupture" : "En stock") + '</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:6px;">' +
+              '<button type="button" data-action="edit-product" data-id="' + escapeHtml(p.id) + '">Modifier</button>' +
+              '<button type="button" class="btn-danger" data-action="delete-product" data-id="' + escapeHtml(p.id) + '">Suppr.</button>' +
+            '</div>';
+          wrap.appendChild(div);
+        });
+      }
+
+      function editProduct(id) {
+        var p = state.products.find(function (item) {
+          return item.id === id;
+        });
+        if (!p) return;
+        switchVendorTab("products");
+        document.getElementById("editProductId").value = p.id;
+        document.getElementById("prodName").value = p.name || "";
+        document.getElementById("prodCategory").value = p.category || "";
+        document.getElementById("prodPrice").value = p.price || 0;
+        document.getElementById("prodStock").value = String(p.inStock !== false);
+        document.getElementById("prodDesc").value = p.description || "";
+        document.getElementById("prodImageUrl").value = p.image && p.image.indexOf("data:") !== 0 ? p.image : "";
+        state.draftImage = p.image || "";
+        showToast("Modification : " + p.name);
+      }
+
+      function deleteProduct(id) {
+        state.products = state.products.filter(function (item) {
+          return item.id !== id;
+        });
+        saveProducts();
+        renderCategories();
+        renderProducts();
+        renderAdminProducts();
+        showToast("Article supprimé");
+      }
+
+      function resetProductForm() {
+        document.getElementById("editProductId").value = "";
+        document.getElementById("productForm").reset();
+        state.draftImage = "";
+      }
+
+      function compressImageFile(file, callback) {
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+          var img = new Image();
+          img.onload = function () {
+            var maxSide = 720;
+            var width = img.width;
+            var height = img.height;
+            if (width > maxSide || height > maxSide) {
+              if (width > height) {
+                height = Math.round((height * maxSide) / width);
+                width = maxSide;
+              } else {
+                width = Math.round((width * maxSide) / height);
+                height = maxSide;
+              }
+            }
+            var canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            var ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            callback(canvas.toDataURL("image/jpeg", 0.72));
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function handleShare() {
+        var url = window.location.href;
+        if (navigator.share) {
+          navigator.share({ title: state.settings.shopName, url: url }).catch(function () {});
+          return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(function () {
+            showToast("Lien copié !");
+          }).catch(function () {
+            showToast(url);
+          });
+          return;
+        }
+        showToast(url);
+      }
+
+      document.addEventListener("click", function (e) {
+        var target = e.target;
+        if (!target || !target.closest) return;
+
+        if (target.classList && target.classList.contains("modal-backdrop")) {
+          target.classList.remove("open");
+          return;
+        }
+
+        var closeBtn = target.closest("[data-close-modal]");
+        if (closeBtn) {
+          closeModal(closeBtn.getAttribute("data-close-modal"));
+          return;
+        }
+
+        var catBtn = target.closest("[data-category]");
+        if (catBtn) {
+          state.selectedCategory = catBtn.getAttribute("data-category");
+          renderCategories();
+          renderProducts();
+          return;
+        }
+
+        var actionBtn = target.closest("[data-action]");
+        if (!actionBtn) return;
+        var action = actionBtn.getAttribute("data-action");
+        var id = actionBtn.getAttribute("data-id");
+
+        if (action === "open-vendor") {
+          openVendorSpace();
+        } else if (action === "open-cart") {
+          renderCartModal();
+          openModal("cartModal");
+        } else if (action === "share") {
+          handleShare();
+        } else if (action === "send-whatsapp") {
+          sendWhatsappOrder();
+        } else if (action === "detail" && id) {
+          openProductDetail(id);
+        } else if (action === "add-cart" && id) {
+          addToCart(id);
+        } else if (action === "add-cart-close-detail" && id) {
+          addToCart(id);
+          closeModal("detailModal");
+        } else if (action === "cart-dec" && id) {
+          updateCartQty(id, -1);
+        } else if (action === "cart-inc" && id) {
+          updateCartQty(id, 1);
+        } else if (action === "tab-products") {
+          switchVendorTab("products");
+        } else if (action === "tab-settings") {
+          switchVendorTab("settings");
+        } else if (action === "lock-vendor") {
+          lockVendor();
+        } else if (action === "edit-product" && id) {
+          editProduct(id);
+        } else if (action === "delete-product" && id) {
+          deleteProduct(id);
+        } else if (action === "reset-product-form") {
+          resetProductForm();
+        } else if (action === "save-new-pin") {
+          var pin1 = document.getElementById("newPinInput").value.trim();
+          var pin2 = document.getElementById("confirmPinInput").value.trim();
+          if (pin1.length < 4 || pin1.length > 12) {
+            showToast("Le Code PIN doit contenir entre 4 et 12 caractères.");
+            return;
+          }
+          if (pin1 !== pin2) {
+            showToast("Les deux Codes PIN ne correspondent pas.");
+            return;
+          }
+          hashPin(pin1).then(function (hashed) {
+            safeSetItem(STORAGE_KEYS.pinHash, hashed);
+            state.vendorUnlocked = true;
+            document.getElementById("newPinInput").value = "";
+            document.getElementById("confirmPinInput").value = "";
+            showToast("Code PIN créé !");
+            openVendorSpace();
+          });
+        } else if (action === "unlock-vendor") {
+          var pin = document.getElementById("loginPinInput").value.trim();
+          var stored = safeGetItem(STORAGE_KEYS.pinHash);
+          hashPin(pin).then(function (hashed) {
+            if (hashed === stored) {
+              state.vendorUnlocked = true;
+              showToast("Accès autorisé");
+              openVendorSpace();
+            } else {
+              showToast("Code PIN incorrect");
+            }
+          });
+        } else if (action === "save-shop-settings") {
+          state.settings.shopName = document.getElementById("setShopName").value.trim() || "Ma Boutique";
+          state.settings.shopSub = document.getElementById("setShopSub").value.trim();
+          state.settings.whatsapp = String(document.getElementById("setWhatsapp").value || "").replace(/\D/g, "") || "22644395480";
+          saveSettings();
+          renderHeaderAndFooter();
+          showToast("Paramètres enregistrés");
+        } else if (action === "update-pin") {
+          var nextPin = document.getElementById("changePinInput").value.trim();
+          if (nextPin.length < 4 || nextPin.length > 12) {
+            showToast("Le Code PIN doit contenir entre 4 et 12 caractères.");
+            return;
+          }
+          hashPin(nextPin).then(function (hashed) {
+            safeSetItem(STORAGE_KEYS.pinHash, hashed);
+            document.getElementById("changePinInput").value = "";
+            showToast("Code PIN mis à jour");
+          });
         }
       });
-    });
 
-    loadState();
-    renderHeaderAndFooter();
-    renderCategories();
-    renderProducts();
-    renderCartBar();
+      document.getElementById("searchInput").addEventListener("input", function (e) {
+        state.searchQuery = e.target.value;
+        renderProducts();
+      });
+
+      document.getElementById("prodImageFile").addEventListener("change", function (e) {
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+        compressImageFile(file, function (dataUrl) {
+          state.draftImage = dataUrl;
+          showToast("Photo prête");
+        });
+      });
+
+      document.getElementById("productForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var editId = document.getElementById("editProductId").value;
+        var name = document.getElementById("prodName").value.trim();
+        var category = document.getElementById("prodCategory").value.trim() || "Général";
+        var price = Number(document.getElementById("prodPrice").value) || 0;
+        var inStock = document.getElementById("prodStock").value === "true";
+        var description = document.getElementById("prodDesc").value.trim();
+        var urlVal = document.getElementById("prodImageUrl").value.trim();
+        var finalImage = urlVal || state.draftImage || "";
+
+        if (!name) return;
+
+        if (editId) {
+          var idx = state.products.findIndex(function (p) {
+            return p.id === editId;
+          });
+          if (idx !== -1) {
+            state.products[idx] = {
+              id: state.products[idx].id,
+              name: name,
+              category: category,
+              price: price,
+              inStock: inStock,
+              description: description,
+              image: finalImage
+            };
+          }
+        } else {
+          state.products.unshift({
+            id: "prod-" + Date.now(),
+            name: name,
+            category: category,
+            price: price,
+            inStock: inStock,
+            description: description,
+            image: finalImage
+          });
+        }
+
+        saveProducts();
+        renderCategories();
+        renderProducts();
+        renderAdminProducts();
+        resetProductForm();
+        showToast("Article enregistré");
+      });
+
+      loadState();
+      renderHeaderAndFooter();
+      renderCategories();
+      renderProducts();
+      renderCartBar();
+    })();
   </script>
 </body>
 </html>
